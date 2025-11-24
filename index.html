@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="theme-color" content="#0f172a" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>Exile Survivors</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Roboto:wght@400;500;700&display=swap');
+      
+      body {
+        background-color: #0f172a;
+        color: #e2e8f0;
+        font-family: 'Roboto', sans-serif;
+        overflow: hidden;
+        user-select: none;
+        -webkit-touch-callout: none;
+      }
+      
+      h1, h2, h3, .font-serif {
+        font-family: 'Cinzel', serif;
+      }
+
+      /* Custom Scrollbar for inventory */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #1e293b; 
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #451a03; 
+        border: 1px solid #78350f;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #78350f; 
+      }
+
+      .item-rare { color: #fde047; text-shadow: 0 0 2px #854d0e; }
+      .item-magic { color: #60a5fa; text-shadow: 0 0 2px #1e3a8a; }
+      .item-normal { color: #f8fafc; }
+      .item-unique { color: #d97706; text-shadow: 0 0 3px #78350f; }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0"
+  }
+}
+</script>
+<!-- PWA Injection Script: Creates Manifest and Icons on the fly -->
+<script>
+  (function() {
+    // 1. Create a dynamic Favicon (Sword Emoji)
+    const canvas = document.createElement('canvas');
+    canvas.width = 64;
+    canvas.height = 64;
+    const ctx = canvas.getContext('2d');
+    ctx.font = '50px serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('⚔️', 32, 36);
+    const iconUrl = canvas.toDataURL('image/png');
+
+    // Set Favicon
+    const link = document.createElement('link');
+    link.rel = 'icon';
+    link.href = iconUrl;
+    document.head.appendChild(link);
+    
+    // Set Apple Touch Icon
+    const appleLink = document.createElement('link');
+    appleLink.rel = 'apple-touch-icon';
+    appleLink.href = iconUrl;
+    document.head.appendChild(appleLink);
+
+    // 2. Create a dynamic Manifest File for Installation
+    const manifest = {
+      "name": "Exile Survivors",
+      "short_name": "Exile",
+      "start_url": ".",
+      "display": "standalone",
+      "background_color": "#0f172a",
+      "theme_color": "#0f172a",
+      "description": "A dark fantasy survival game.",
+      "icons": [
+        {
+          "src": iconUrl,
+          "sizes": "64x64",
+          "type": "image/png"
+        },
+        {
+          "src": iconUrl,
+          "sizes": "192x192",
+          "type": "image/png"
+        },
+        {
+          "src": iconUrl,
+          "sizes": "512x512",
+          "type": "image/png"
+        }
+      ]
+    };
+
+    const stringManifest = JSON.stringify(manifest);
+    const blob = new Blob([stringManifest], {type: 'application/json'});
+    const manifestURL = URL.createObjectURL(blob);
+    
+    const manifestLink = document.createElement('link');
+    manifestLink.rel = 'manifest';
+    manifestLink.href = manifestURL;
+    document.head.appendChild(manifestLink);
+  })();
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
