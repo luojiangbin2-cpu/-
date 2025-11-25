@@ -21,8 +21,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ settings, onUpdate, onClo
   };
 
   return (
-    <div className="absolute inset-0 bg-black/90 flex items-center justify-center z-[60]">
-      <div className="bg-slate-900 border-2 border-amber-800 p-8 rounded-lg w-[500px] shadow-2xl">
+    <div className="absolute inset-0 bg-black/90 flex items-center justify-center z-[60] p-4">
+      <div className="bg-slate-900 border-2 border-amber-800 p-6 md:p-8 rounded-lg w-full max-w-[500px] shadow-2xl">
         
         <div className="flex justify-between items-center mb-6 border-b border-slate-700 pb-4">
             <h2 className="text-2xl font-serif text-amber-500">{t.settings}</h2>

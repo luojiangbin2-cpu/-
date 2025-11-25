@@ -1,10 +1,16 @@
 
-import { ItemSlot, Rarity, Skill, Settings, AffixTemplate, EnemyAffix } from './types';
+
+import { ItemSlot, Rarity, Skill, Settings, AffixTemplate, EnemyAffix, SkillNode } from './types';
 
 export const CANVAS_WIDTH = 1280;
 export const CANVAS_HEIGHT = 720;
-export const MAX_SKILL_LEVEL = 10;
-export const BOSS_SPAWN_KILLS = 300; // Increased requirement to 300
+export const MAX_SKILL_LEVEL = 20; // Increased for tree depth
+export const BOSS_SPAWN_KILLS = 300; 
+export const BOSS_RESPAWN_KILLS = 300; 
+
+// Levels where the player unlocks a NEW Active Skill Slot
+// Removed Level 1 because we auto-grant Basic Attack now
+export const SKILL_UNLOCK_LEVELS = [3, 6, 12, 20]; 
 
 // --- 资源替换清单 / ASSET REPLACEMENT LIST ---
 export const GAME_ASSETS: Record<string, string> = {
@@ -39,6 +45,11 @@ export const GAME_ASSETS: Record<string, string> = {
     'icon_skill_blade': "",
     'icon_skill_arc': "",
     'icon_skill_kinetic': "",
+    
+    // Augment Icons 
+    'icon_aug_coc': "",
+    'icon_aug_bladestorm': "",
+    'icon_aug_static': "",
 
     // 7. 装备图标 (UI & Drop) / Equipment Icons
     'icon_weapon_sword': "",
@@ -62,11 +73,14 @@ export const DEFAULT_SETTINGS: Settings = {
 
 export const STAT_TRANSLATIONS: Record<string, { en: string, zh: string }> = {
   maxHp: { en: "Maximum Life", zh: "最大生命值" },
-  damageMultiplier: { en: "Physical Damage", zh: "物理伤害" },
+  damageMultiplier: { en: "Global Damage", zh: "全局伤害" },
   attackSpeedMultiplier: { en: "Attack Speed", zh: "攻击速度" },
   critChance: { en: "Critical Strike Chance", zh: "暴击率" },
   speed: { en: "Movement Speed", zh: "移动速度" },
-  armor: { en: "Armor", zh: "护甲" }
+  armor: { en: "Armor", zh: "护甲" },
+  physDamageMult: { en: "Physical Damage", zh: "物理伤害" },
+  coldDamageMult: { en: "Cold Damage", zh: "冰霜伤害" },
+  lightningDamageMult: { en: "Lightning Damage", zh: "闪电伤害" }
 };
 
 export const SKILL_STAT_LABELS: Record<string, { en: string, zh: string }> = {
@@ -77,6 +91,16 @@ export const SKILL_STAT_LABELS: Record<string, { en: string, zh: string }> = {
     projectileCount: { en: "Projectiles", zh: "投射物数量" },
     area: { en: "Area Scale", zh: "范围系数" },
     projectileSpeed: { en: "Proj. Speed", zh: "飞行速度" }
+};
+
+export const ENEMY_NAME_TRANSLATIONS: Record<string, { en: string, zh: string }> = {
+    'enemy_zombie': { en: "Zombie", zh: "腐臭僵尸" },
+    'enemy_skeleton': { en: "Skeleton", zh: "骷髅射手" },
+    'enemy_bat': { en: "Bat", zh: "吸血蝙蝠" },
+    'enemy_golem': { en: "Golem", zh: "岩石傀儡" },
+    'boss_valos': { en: "Valos", zh: "瓦洛斯" },
+    'enemy_doppelganger': { en: "Doppelgänger", zh: "暗影分身" },
+    'enemy_prism': { en: "Prism", zh: "虚空棱镜" }
 };
 
 export const UNIQUE_EFFECT_TRANSLATIONS: Record<string, { en: string, zh: string }> = {
@@ -105,6 +129,8 @@ export const UNIQUE_EFFECT_TRANSLATIONS: Record<string, { en: string, zh: string
 export const TRANSLATIONS = {
   en: {
     startGame: "Enter the Abyss",
+    tagline: "Endless hordes. Infinite power. No escape.",
+    loading: "Loading Assets...",
     resurrect: "Resurrect",
     youDied: "YOU DIED",
     survived: "Survived",
@@ -131,7 +157,10 @@ export const TRANSLATIONS = {
     sfxVol: "SFX Volume",
     close: "Close",
     levelUp: "LEVEL UP!",
-    choosePower: "Choose a new power",
+    choosePower: "Unlock New Skill",
+    skillTree: "Skill Specialization",
+    pointsAvailable: "Points Available",
+    allocated: "Allocated",
     type: "Type",
     controlHint: "WASD to Move | 'I' for Inventory | 'P' to Pause",
     currentlyEquipped: "Currently Equipped",
@@ -141,10 +170,23 @@ export const TRANSLATIONS = {
     mastery: "MASTERY Reached!",
     bossEncounter: "BOSS ENCOUNTER",
     bossName: "Valos, The Prism Monarch",
-    bossTitle: "Void Refractor"
+    bossTitle: "Void Refractor",
+    runSummary: "Run Summary",
+    kills: "Kills",
+    damageDealt: "Damage Dealt",
+    restart: "Return to Menu",
+    noKills: "No kills recorded...",
+    pacifist: "Pacifist run?",
+    synergy: "Synergy",
+    augment: "Tactical Augment",
+    reaction_shatter: "SHATTER!",
+    reaction_superconduct: "ZAP!",
+    reaction_thermal: "MELT!"
   },
   zh: {
     startGame: "进入深渊",
+    tagline: "无尽的尸潮，无限的力量，无路可逃。",
+    loading: "正在加载资源...",
     resurrect: "复活",
     youDied: "你挂了",
     survived: "生存时间",
@@ -171,7 +213,10 @@ export const TRANSLATIONS = {
     sfxVol: "音效音量",
     close: "关闭",
     levelUp: "等级提升!",
-    choosePower: "选择一项能力",
+    choosePower: "解锁新技能",
+    skillTree: "技能专精",
+    pointsAvailable: "可用技能点",
+    allocated: "已投入",
     type: "类型",
     controlHint: "WASD 移动 | 'I' 打开背包 | 'P' 暂停",
     currentlyEquipped: "当前已装备",
@@ -181,7 +226,18 @@ export const TRANSLATIONS = {
     mastery: "技能精通 (MAX)",
     bossEncounter: "BOSS 遭遇战",
     bossName: "折光君主·瓦洛斯",
-    bossTitle: "虚空折射者 | 破碎维度的守门人"
+    bossTitle: "虚空折射者 | 破碎维度的守门人",
+    runSummary: "本次探险统计",
+    kills: "击杀数",
+    damageDealt: "技能伤害占比",
+    restart: "返回菜单",
+    noKills: "居然没有击杀记录...",
+    pacifist: "和平主义者？",
+    synergy: "技能连携",
+    augment: "战术插件",
+    reaction_shatter: "碎冰!",
+    reaction_superconduct: "超导!",
+    reaction_thermal: "热休克!"
   }
 };
 
@@ -194,11 +250,19 @@ export const BASE_STATS = {
   critChance: 0.05,
   critMultiplier: 1.5,
   armor: 0,
+  physDamageMult: 1,
+  coldDamageMult: 1,
+  lightningDamageMult: 1
 };
 
 export const XP_SCALING_FACTOR = 1.25;
 export const TIME_SCALING_FACTOR = 0.2; 
 export const GEM_BASE_XP = 10;
+export const GEM_TIERS = {
+    blue: { xpMult: 1, color: '#60a5fa' },
+    gold: { xpMult: 2, color: '#facc15' },
+    purple: { xpMult: 5, color: '#a855f7' }
+};
 
 export const KINETIC_MAX_CHARGE = 300; 
 export const KINETIC_CHARGE_PER_PIXEL = 0.2; 
@@ -210,7 +274,7 @@ export const ENEMY_TYPES = {
     bat: { hp: 12, speed: 3.0, color: '#312e81', width: 18, damage: 5, assetKey: 'enemy_bat' },
     golem: { hp: 120, speed: 0.7, color: '#57534e', width: 50, damage: 25, assetKey: 'enemy_golem' },
     boss_valos: { hp: 15000, speed: 1.5, color: '#8b5cf6', width: 60, damage: 40, assetKey: 'boss_valos' },
-    prism: { hp: 2000, speed: 0, color: '#a78bfa', width: 30, damage: 0, assetKey: 'enemy_prism' },
+    prism: { hp: 5000, speed: 0, color: '#a78bfa', width: 30, damage: 0, assetKey: 'enemy_prism' },
     doppelganger: { hp: 5000, speed: 1.2, color: '#4c1d95', width: 30, damage: 30, assetKey: 'enemy_doppelganger' } // Reduced speed from 3.5 to 1.2
 };
 
@@ -221,17 +285,54 @@ export const MONSTER_AFFIXES: EnemyAffix[] = [
     { name: "Giant", nameZh: "巨大", statMod: { width: 1.4, maxHp: 1.3 } },
     { name: "Deadly", nameZh: "致命", statMod: { damage: 1.5 } },
     { name: "Hasted", nameZh: "极速", statMod: { speed: 1.6 } },
-    { name: "Regenerating", nameZh: "再生", statMod: { maxHp: 1.2 } }, // Logic handled in App.tsx
+    { name: "Regenerating", nameZh: "再生", statMod: { maxHp: 1.2 } }, 
     { name: "Vampiric", nameZh: "吸血", statMod: { damage: 1.2 } },
     { name: "Armored", nameZh: "硬皮", statMod: { maxHp: 1.2 } }
+];
+
+// --- SKILL TREES ---
+
+const BASIC_TREE: SkillNode[] = [
+    { id: 'dmg_1', name: 'Sharpness', nameZh: '锋利', description: 'Increases damage', descriptionZh: '增加基础伤害', icon: '⚔️', col: 2, row: 0, maxPoints: 5, prerequisites: [], statsPerPoint: { damage: 15 } },
+    { id: 'spd_1', name: 'Agility', nameZh: '灵巧', description: 'Reduces cooldown', descriptionZh: '减少攻击冷却', icon: '🍃', col: 2, row: 1, maxPoints: 5, prerequisites: ['dmg_1'], statsPerPoint: { cooldown: -3 } },
+    { id: 'area_1', name: 'Reach', nameZh: '延展', description: 'Increases area', descriptionZh: '增加攻击范围', icon: '📏', col: 1, row: 2, maxPoints: 3, prerequisites: ['spd_1'], statsPerPoint: { area: 0.2 } },
+    { id: 'crit_1', name: 'Precision', nameZh: '弱点识破', description: 'Increases crit chance', descriptionZh: '增加暴击几率', icon: '🎯', col: 3, row: 2, maxPoints: 3, prerequisites: ['spd_1'], statsPerPoint: { critChance: 0.05 } },
+    { id: 'aug_coc', name: 'Cast On Crit', nameZh: '暴击咏唱', description: 'Critical hits trigger Ice Bolt', descriptionZh: '暴击触发寒冰箭', icon: '✨', col: 2, row: 3, maxPoints: 1, prerequisites: ['crit_1'], statsPerPoint: { unlockAugment: 'aug_coc' } }
+];
+
+const ICE_TREE: SkillNode[] = [
+    { id: 'dmg_1', name: 'Frostbite', nameZh: '冻伤', description: 'Increases damage', descriptionZh: '增加冰霜伤害', icon: '❄️', col: 2, row: 0, maxPoints: 5, prerequisites: [], statsPerPoint: { damage: 10 } },
+    { id: 'count_1', name: 'Splinter', nameZh: '分裂', description: 'Additional projectiles', descriptionZh: '额外投射物', icon: '🏹', col: 1, row: 1, maxPoints: 3, prerequisites: ['dmg_1'], statsPerPoint: { projectileCount: 1 } },
+    { id: 'dur_1', name: 'Permafrost', nameZh: '永冻', description: 'Freeze duration', descriptionZh: '冻结时间延长', icon: '🧊', col: 3, row: 1, maxPoints: 3, prerequisites: ['dmg_1'], statsPerPoint: { duration: 30 } },
+    { id: 'aug_storm', name: 'Blade Storm', nameZh: '剑刃风暴', description: 'Hits summon Blade Vortex', descriptionZh: '命中生成刀刃漩涡', icon: '🌪️', col: 2, row: 3, maxPoints: 1, prerequisites: ['count_1', 'dur_1'], statsPerPoint: { unlockAugment: 'aug_bladestorm' } }
+];
+
+const BV_TREE: SkillNode[] = [
+    { id: 'dur_1', name: 'Momentum', nameZh: '动量', description: 'Increases duration', descriptionZh: '增加持续时间', icon: '⏳', col: 2, row: 0, maxPoints: 5, prerequisites: [], statsPerPoint: { duration: 60 } },
+    { id: 'spd_1', name: 'Centrifuge', nameZh: '离心力', description: 'Spin speed', descriptionZh: '旋转速度', icon: '🔄', col: 3, row: 1, maxPoints: 5, prerequisites: ['dur_1'], statsPerPoint: { projectileSpeed: 0.1 } },
+    { id: 'count_1', name: 'More Blades', nameZh: '刀丛', description: 'More blades', descriptionZh: '更多刀刃', icon: '⚔️', col: 1, row: 1, maxPoints: 3, prerequisites: ['dur_1'], statsPerPoint: { projectileCount: 1 } },
+    { id: 'area_1', name: 'Vortex', nameZh: '漩涡', description: 'Radius', descriptionZh: '旋转半径', icon: '⭕', col: 2, row: 2, maxPoints: 5, prerequisites: ['spd_1', 'count_1'], statsPerPoint: { range: 10 } }
+];
+
+const ARC_TREE: SkillNode[] = [
+    { id: 'dmg_1', name: 'Voltage', nameZh: '高压', description: 'Increases damage', descriptionZh: '增加伤害', icon: '⚡', col: 2, row: 0, maxPoints: 5, prerequisites: [], statsPerPoint: { damage: 12 } },
+    { id: 'range_1', name: 'Conductivity', nameZh: '传导', description: '弹射范围', descriptionZh: '增加弹射范围', icon: '🌐', col: 1, row: 1, maxPoints: 5, prerequisites: ['dmg_1'], statsPerPoint: { range: 40 } },
+    { id: 'cd_1', name: 'Frequency', nameZh: '高频', description: 'Reduces cooldown', descriptionZh: '减少冷却', icon: '⏱️', col: 3, row: 1, maxPoints: 5, prerequisites: ['dmg_1'], statsPerPoint: { cooldown: -5 } },
+    { id: 'aug_static', name: 'Static Discharge', nameZh: '静电释放', description: 'Kinetic triggers Arcs', descriptionZh: '动能释放触发闪电链', icon: '🌩️', col: 2, row: 3, maxPoints: 1, prerequisites: ['range_1', 'cd_1'], statsPerPoint: { unlockAugment: 'aug_static' } }
+];
+
+const KINETIC_TREE: SkillNode[] = [
+    { id: 'area_1', name: 'Field', nameZh: '立场', description: 'Area of Effect', descriptionZh: '爆炸范围', icon: '💥', col: 2, row: 0, maxPoints: 5, prerequisites: [], statsPerPoint: { area: 20 } },
+    { id: 'dmg_1', name: 'Overload', nameZh: '过载', description: 'Damage', descriptionZh: '伤害', icon: '💪', col: 1, row: 1, maxPoints: 5, prerequisites: ['area_1'], statsPerPoint: { damage: 20 } },
+    { id: 'rate_1', name: 'Dynamo', nameZh: '发电机', description: 'Charge rate', descriptionZh: '充能速度', icon: '🏃', col: 3, row: 1, maxPoints: 3, prerequisites: ['area_1'], statsPerPoint: { cooldown: 0.1 } } // Cooldown reused for charge rate logic
 ];
 
 export const BASIC_ATTACK_SKILL: Skill = {
     id: 'basic_attack',
     name: 'Moon Blade',
     nameZh: '月弧剑气',
-    description: 'Unleash a crescent wave. Lvl Up: +Size, +Atk Spd.',
-    descriptionZh: '挥出白色弯月剑气。升级: +范围, +攻速。',
+    description: 'Unleash a crescent wave. Applies Bleed.',
+    descriptionZh: '挥出白色弯月剑气。造成流血效果。',
     cooldown: 35, 
     damage: 60, 
     projectileSpeed: 0,
@@ -242,9 +343,9 @@ export const BASIC_ATTACK_SKILL: Skill = {
     level: 1,
     maxLevel: MAX_SKILL_LEVEL,
     type: 'melee',
-    statsPerLevel: { damage: 10, area: 0.15, cooldown: -2 },
-    masteryEffect: "Double Attack Speed & Size",
-    masteryEffectZh: "攻速与范围翻倍"
+    element: 'physical',
+    tree: BASIC_TREE,
+    allocatedPoints: {}
 };
 
 // Skills
@@ -254,8 +355,8 @@ export const AVAILABLE_SKILLS: Skill[] = [
     id: 'icebolt', 
     name: 'Ice Bolt',
     nameZh: '寒冰箭',
-    description: 'Fires shards of ice. Lvl 3: Multi-shot. Lvl 5: Slows.',
-    descriptionZh: '发射冰凌。3级: 散射。5级: 减速。',
+    description: 'Fires shards of ice. Freezes enemies.',
+    descriptionZh: '发射冰凌。冻结敌人。',
     cooldown: 55,
     damage: 45, 
     projectileSpeed: 4.5, 
@@ -266,19 +367,19 @@ export const AVAILABLE_SKILLS: Skill[] = [
     level: 0,
     maxLevel: MAX_SKILL_LEVEL,
     type: 'projectile',
-    statsPerLevel: { damage: 8, projectileCount: 0 }, // Handled specially in logic
-    masteryEffect: "Fires a 360-degree Nova",
-    masteryEffectZh: "向四周360度发射冰环"
+    element: 'cold',
+    tree: ICE_TREE,
+    allocatedPoints: {}
   },
   {
     id: 'aura', 
     name: 'Blade Vortex',
     nameZh: '刀刃漩涡',
-    description: 'Summons orbiting blades. Lvl Up: +Blade Cap, +Speed.',
-    descriptionZh: '召唤旋转刀刃。升级: +刀刃上限, +转速。',
+    description: 'Summons orbiting blades. Causes heavy Bleeding.',
+    descriptionZh: '召唤旋转刀刃。造成严重流血。',
     cooldown: 60, 
     damage: 15,
-    duration: 9999, // Infinite in practice
+    duration: 9999, 
     projectileCount: 2, 
     color: '#10b981',
     icon: '⚔️',
@@ -286,16 +387,16 @@ export const AVAILABLE_SKILLS: Skill[] = [
     level: 0,
     maxLevel: MAX_SKILL_LEVEL,
     type: 'orbit',
-    statsPerLevel: { damage: 5, projectileCount: 1 },
-    masteryEffect: "Blades spin exponentially faster",
-    masteryEffectZh: "刀刃旋转速度大幅提升"
+    element: 'physical',
+    tree: BV_TREE,
+    allocatedPoints: {}
   },
   {
     id: 'lightning',
     name: 'Arc',
     nameZh: '闪电链',
-    description: 'Chains lightning. Lvl Up: +Chains, +Damage.',
-    descriptionZh: '弹射闪电链。升级: +弹射次数, +伤害。',
+    description: 'Chains lightning. Shocks enemies.',
+    descriptionZh: '弹射闪电链。感电敌人。',
     cooldown: 80,
     damage: 55,
     range: 380,
@@ -305,16 +406,16 @@ export const AVAILABLE_SKILLS: Skill[] = [
     level: 0,
     maxLevel: MAX_SKILL_LEVEL,
     type: 'aoe',
-    statsPerLevel: { damage: 12, range: 20 },
-    masteryEffect: "Chains to every enemy on screen",
-    masteryEffectZh: "连锁攻击全屏所有敌人"
+    element: 'lightning',
+    tree: ARC_TREE,
+    allocatedPoints: {}
   },
   {
     id: 'kinetic',
     name: 'Kinetic Capacitor',
     nameZh: '动能蓄电池',
-    description: 'Charge by moving. Lvl Up: +Max Charge, +Damage.',
-    descriptionZh: '移动充能。升级: +最大电荷, +伤害。',
+    description: 'Charge by moving. Release massive Shock.',
+    descriptionZh: '移动充能。释放强力感电场。',
     cooldown: 30,
     damage: 60, 
     range: KINETIC_RANGE,
@@ -324,10 +425,10 @@ export const AVAILABLE_SKILLS: Skill[] = [
     level: 0,
     maxLevel: MAX_SKILL_LEVEL,
     type: 'kinetic',
-    statsPerLevel: { damage: 15, area: 15 },
-    masteryEffect: "Moving charges instantly & triggers automatically",
-    masteryEffectZh: "移动瞬间充能并自动释放"
-  }
+    element: 'lightning',
+    tree: KINETIC_TREE,
+    allocatedPoints: {}
+  },
 ];
 
 export const ITEM_BASES = [
@@ -342,13 +443,43 @@ export const ITEM_BASES = [
 // DEFINING TIERS (T5 = Lowest, T1 = Highest)
 export const PREFIX_TEMPLATES: AffixTemplate[] = [
   {
-      stat: 'damageMultiplier', isPct: true, text: 'Increased Physical Damage',
+      stat: 'damageMultiplier', isPct: true, text: 'Increased Global Damage',
       tiers: [
           { tier: 5, name: "Heavy", nameZh: "沉重之", min: 0.10, max: 0.19 },
           { tier: 4, name: "Serrated", nameZh: "锯齿之", min: 0.20, max: 0.29 },
           { tier: 3, name: "Wicked", nameZh: "邪恶之", min: 0.30, max: 0.39 },
           { tier: 2, name: "Cruel", nameZh: "残暴之", min: 0.40, max: 0.49 },
           { tier: 1, name: "Tyrannical", nameZh: "暴君之", min: 0.50, max: 0.65 }
+      ]
+  },
+  {
+      stat: 'physDamageMult', isPct: true, text: 'Increased Physical Damage',
+      tiers: [
+          { tier: 5, name: "Sharpened", nameZh: "锐利之", min: 0.10, max: 0.19 },
+          { tier: 4, name: "Honed", nameZh: "打磨之", min: 0.20, max: 0.29 },
+          { tier: 3, name: "Razor", nameZh: "剃刀之", min: 0.30, max: 0.39 },
+          { tier: 2, name: "Flaying", nameZh: "剥皮之", min: 0.40, max: 0.49 },
+          { tier: 1, name: "Decapitator", nameZh: "断头之", min: 0.50, max: 0.70 }
+      ]
+  },
+  {
+      stat: 'coldDamageMult', isPct: true, text: 'Increased Cold Damage',
+      tiers: [
+          { tier: 5, name: "Chilled", nameZh: "寒冷之", min: 0.10, max: 0.19 },
+          { tier: 4, name: "Frosted", nameZh: "结霜之", min: 0.20, max: 0.29 },
+          { tier: 3, name: "Freezing", nameZh: "冻结之", min: 0.30, max: 0.39 },
+          { tier: 2, name: "Glacial", nameZh: "冰河之", min: 0.40, max: 0.49 },
+          { tier: 1, name: "Winter", nameZh: "凛冬之", min: 0.50, max: 0.70 }
+      ]
+  },
+  {
+      stat: 'lightningDamageMult', isPct: true, text: 'Increased Lightning Damage',
+      tiers: [
+          { tier: 5, name: "Static", nameZh: "静电之", min: 0.10, max: 0.19 },
+          { tier: 4, name: "Sparking", nameZh: "火花之", min: 0.20, max: 0.29 },
+          { tier: 3, name: "Arcing", nameZh: "弧光之", min: 0.30, max: 0.39 },
+          { tier: 2, name: "Shocking", nameZh: "感电之", min: 0.40, max: 0.49 },
+          { tier: 1, name: "Thunderous", nameZh: "雷霆之", min: 0.50, max: 0.70 }
       ]
   },
   {

@@ -35,13 +35,13 @@ const EncyclopediaModal: React.FC<EncyclopediaModalProps> = ({ settings, onClose
   };
 
   return (
-    <div className="absolute inset-0 bg-black/90 flex items-center justify-center z-[70] backdrop-blur-sm">
-      <div className="bg-slate-900 border-2 border-amber-800 rounded-lg w-[800px] h-[600px] shadow-2xl flex flex-col overflow-hidden">
+    <div className="absolute inset-0 bg-black/90 flex items-center justify-center z-[70] backdrop-blur-sm p-4">
+      <div className="bg-slate-900 border-2 border-amber-800 rounded-lg w-full max-w-[800px] h-[85vh] max-h-[600px] shadow-2xl flex flex-col overflow-hidden">
         
-        <div className="flex justify-between items-center p-6 border-b border-slate-700 bg-slate-950">
+        <div className="flex justify-between items-center p-4 md:p-6 border-b border-slate-700 bg-slate-950">
             <div className="flex items-center gap-3">
                 <BookOpen className="text-amber-500" size={28} />
-                <h2 className="text-2xl font-serif text-amber-100">{t.encyclopedia}</h2>
+                <h2 className="text-xl md:text-2xl font-serif text-amber-100">{t.encyclopedia}</h2>
             </div>
             <button onClick={onClose} className="text-slate-400 hover:text-white hover:bg-red-900/50 p-1 rounded"><X size={24}/></button>
         </div>
@@ -61,9 +61,9 @@ const EncyclopediaModal: React.FC<EncyclopediaModalProps> = ({ settings, onClose
             </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6 bg-slate-900 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-900 custom-scrollbar">
             {tab === 'monsters' && (
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {MONSTER_AFFIXES.map((affix, i) => (
                         <div key={i} className="bg-slate-950 border border-slate-800 p-4 rounded hover:border-amber-900/50">
                             <h3 className="text-amber-400 font-bold text-lg mb-2">{lang === 'zh' ? affix.nameZh : affix.name}</h3>
@@ -84,17 +84,17 @@ const EncyclopediaModal: React.FC<EncyclopediaModalProps> = ({ settings, onClose
             )}
 
             {tab === 'skills' && (
-                <div className="space-y-8">
+                <div className="space-y-6 md:space-y-8">
                     {AVAILABLE_SKILLS.map((skill) => (
-                        <div key={skill.id} className="bg-slate-950 border border-slate-800 rounded p-4 flex gap-4">
-                             <div className="w-16 h-16 bg-slate-900 border border-slate-700 rounded-full flex-shrink-0 flex items-center justify-center text-2xl overflow-hidden">
+                        <div key={skill.id} className="bg-slate-950 border border-slate-800 rounded p-4 flex flex-col md:flex-row gap-4">
+                             <div className="w-16 h-16 bg-slate-900 border border-slate-700 rounded-full flex-shrink-0 flex items-center justify-center text-2xl overflow-hidden mx-auto md:mx-0">
                                 {skill.assetKey && getImage(skill.assetKey) ? (
                                     <img src={getImage(skill.assetKey)!.src} className="w-full h-full object-cover" />
                                 ) : skill.icon}
                              </div>
                              <div className="flex-1">
-                                 <h3 className="text-xl font-bold text-white mb-1">{lang === 'zh' ? skill.nameZh : skill.name}</h3>
-                                 <p className="text-slate-400 text-sm mb-3">{lang === 'zh' ? skill.descriptionZh : skill.description}</p>
+                                 <h3 className="text-xl font-bold text-white mb-1 text-center md:text-left">{lang === 'zh' ? skill.nameZh : skill.name}</h3>
+                                 <p className="text-slate-400 text-sm mb-3 text-center md:text-left">{lang === 'zh' ? skill.descriptionZh : skill.description}</p>
                                  
                                  <div className="bg-slate-900/50 p-2 rounded text-xs font-mono space-y-1 text-slate-300">
                                      <div className="flex justify-between"><span className="text-slate-500">{getStatLabel('damage')}:</span> {skill.damage}</div>
